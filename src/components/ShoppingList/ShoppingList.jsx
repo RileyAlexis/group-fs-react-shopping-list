@@ -1,78 +1,60 @@
 import React, { useState , useEffect } from 'react';
-import './ShoppingList.css'; 
 import axios from 'axios';
-
-function ShoppingList() {
-    const [shoppingList, setShoppingList] = useState([]);
-    const [itemName, setItemName] = useState('');
-    const [quantityList, setQuantityList] = useState('')
-    const [unitList, setUnitList] = useState('')
+import swal from 'sweetalert';
 
 
-
-    const fetchList = () => {
-        axios.get('/shoppingList')
-        .then((response) => {
-            console.log(response);
-            setShoppingList(response.data);
-        })
-        .catch((error) => {
-            console.log(error);
-        })
-    }
-    useEffect(() => {
+function ShoppingList({fetchList, item}) {
+  
+    const buyItem = () => {
+      console.log('Buy Item', item);
+      axios.put(`/shoppingList/complete/${item.id}`)
+      .then ((response) => {
+        console.log(response);
         fetchList();
-      }, []);
-
-      const newItem = (event) => {
-        event.preventDefault();
-        axios.post(`/shoppingList/`, {item: itemName , quantity: quantityList , unit: unitList, complete: false})
-        .then( (response) => {
-            fetchList();
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
+      })
+      .catch((error) => {
+        console.log(error);
+      })
     }
 
-    // const toggleComplete = (id) => {
-    //     axios.put(`/shoppingList/complete/${id}`)
-    //     .then((response) => {
-    //         console.log(response);
-    //     }).catch((error) => {
-    //         console.log(error);
-    //     })
-    // }
+    const deleteItem = () => {
+      swal({
+        title: `Delete ${item.item}?`,
+        text: 'Are you sure?',
+        icon: "warning",
+        buttons: true,
+        dangerMode: true
+        })
+        .then((value) => {
+            if (value) {
+            axios.delete(`/shoppingList/${item.id}`)
+            .then((response) => {
+                fetchList();
+            }).catch((error) => {
+                console.log(error);
+            })
+        }
+      }
+        )
+      }
+
+            
 
       return (
-        <div className="container">
-        <section className="new-shopping-list">
-        <form onSubmit={newItem}>
-          <label htmlFor="item-input">Item</label>
-          <input  onChange={e => setItemName(e.target.value)} />
-          <label htmlFor="quantity-input">Quantity</label>
-          <input  onChange={e => setQuantityList(e.target.value)} />
-          <label htmlFor="unit-input">Unit</label>
-          <input onChange={e => setUnitList(e.target.value)} />
-          <button type="save">Done</button>
-        </form>   
-        <div className="card">
-        <ul>
-        {shoppingList.map(item =>
-            (
-                <>
-            <li key={item.id}>
-              {item.item} {item.quantity} Quantity {item.unit}
-            </li>
-            </>
-            ))}
-              </ul>
-            </div>
-
-            </section>
-            </div>
-            
-      );
-}
+        
+        <div className={`item-box ${item.complete ? 'completed' : ''}`} >
+          <div className="item-box-text">
+          <p>{item.item}</p>
+          <p>Qty: {item.quantity}, {item.unit}</p>
+          <p>{item.complete}</p>
+          </div>
+          <div className="item-box-btn-box">
+              <button className="buyBtn" onClick={buyItem}>Buy</button> 
+          <button className="deleteBtn" onClick={deleteItem}>X</button>
+          </div>
+        </div>
+          
+      )
+            }
 
 export default ShoppingList;

@@ -3,7 +3,8 @@ const router = express.Router();
 const pool = require('../modules/pool.js');
 
 router.get('/', (req, res) => {
-    let queryString = `SELECT * FROM "shoppinglist"`;
+    let queryString = `SELECT * FROM "shoppinglist"
+                ORDER BY "item" ASC`;
     pool.query(queryString)
     .then((result) => {
         res.send(result.rows);
@@ -41,9 +42,10 @@ router.put('/complete/:id', (req, res) => {
 
 
 router.delete('/:id', (req, res) => {
-    let queryString = `DELETE * FROM "shoppingList"
+    let queryString = `DELETE FROM "shoppinglist"
                     WHERE "id" = $1`
-        pool.query(queryString)
+    let id = req.params.id;
+        pool.query(queryString, [id])
         .then((result) => {
             res.sendStatus(201);
         }).catch((error) => {
